@@ -32,10 +32,7 @@
         public function SetExtension($offset, ExtensionInterface $extension) : ?CoreObjectInterface;
         public function GetExtension($offset) : ?CoreObjectInterface;
         public function GetExtensions(string $isA) : array;
+     
         
     }
-
-
-
-
 ?>

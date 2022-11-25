@@ -166,7 +166,6 @@
             
                 if (is_null($returnValue))
                     $this->errors = array_merge($this->errors, $this->components->GetErrors());
-                    
             }
 
             return $this->SendEvent(CoreMethodReturnEvent::AUTO([&$component], $returnValue));
@@ -189,7 +188,6 @@
 
                 if (is_null($returnValue))
                     $this->errors = array_merge($this->errors, $this->components->GetErrors());
-
             }
 
             return $this->SendEvent(CoreMethodReturnEvent::AUTO([&$component], $returnValue));    
@@ -328,7 +326,6 @@
             
                 if (is_null($returnValue))
                     $this->errors = array_merge($this->errors, $this->extensions->GetErrors());
-                    
             }
 
             return $this->SendEvent(CoreMethodReturnEvent::AUTO([&$extension], $returnValue));
@@ -351,7 +348,6 @@
 
                 if (is_null($returnValue))
                     $this->errors = array_merge($this->errors, $this->extensions->GetErrors());
-
             }
 
             return $this->SendEvent(CoreMethodReturnEvent::AUTO([&$extension], $returnValue));    
@@ -421,7 +417,7 @@
 
 
 
-        
+
 
 
         protected function SendEvent(CoreMethodEventInterface $event) {
