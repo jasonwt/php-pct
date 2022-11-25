@@ -24,6 +24,13 @@
 
         private ?CoreObjectInterface $parent = null;
 
+        /**
+         * Constructor
+         *
+         * @param boolean $autoOffset
+         * @param string|null $componentsBaseClass
+         * @param string|null $extensionsBaseClass
+         */
         public function __construct(bool $autoOffset = false, string $componentsBaseClass = null, string $extensionsBaseClass = null) {
             parent::__construct();
 
@@ -37,10 +44,22 @@
             $this->extensions = new CoreObjectArray($extensionsBaseClass, $autoOffset);
         }
        
+        /**
+         * Get Parent
+         *
+         * @return CoreObjectInterface|null
+         */
         public function GetParent() : ?CoreObjectInterface {
             return $this->parent;
         }
         
+        /**
+         * Set the parent.
+         * Only available to AddComponent, RemoveComponent functions
+         *
+         * @param CoreObjectInterface|null $parent
+         * @return boolean|null
+         */
         public function SetParent(?CoreObjectInterface $parent) : ?bool {
             $returnValue = null;
 
@@ -107,7 +126,7 @@
             $returnValue = null;
 
             if ($this->SendEvent(CoreMethodCallEvent::AUTO([&$component])))
-                if (is_null($returnValue = $this->components->Exists($component, 0)))
+                if (is_null($returnValue = $this->components->Exists($component)))
                     $this->errors = array_merge($this->errors, $this->components->GetErrors());
 
             return $this->SendEvent(CoreMethodReturnEvent::AUTO([&$component], $returnValue));
@@ -269,7 +288,7 @@
             $returnValue = null;
 
             if ($this->SendEvent(CoreMethodCallEvent::AUTO([&$extension])))
-                if (is_null($returnValue = $this->extensions->Exists($extension, 0)))
+                if (is_null($returnValue = $this->extensions->Exists($extension)))
                     $this->errors = array_merge($this->errors, $this->extensions->GetErrors());
 
             return $this->SendEvent(CoreMethodReturnEvent::AUTO([&$extension], $returnValue));
@@ -402,6 +421,7 @@
 
 
 
+        
 
 
         protected function SendEvent(CoreMethodEventInterface $event) {
@@ -411,12 +431,5 @@
         protected function HandleEvent(CoreEventInterface $event) {
 
         }
-
-
-        
     }
-
-
-
-
 ?>
