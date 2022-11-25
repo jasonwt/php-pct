@@ -6,12 +6,12 @@
     error_reporting(E_ALL);
     ini_set('display_errors', '1');
 
-    use pct\core\CoreInterface;
+    use pct\core\CoreObjectInterface;
     use pct\events\core\method\CoreMethodEvent;
     use pct\events\core\method\CoreMethodCallEventInterface;
 
     class CoreMethodCallEvent extends CoreMethodEvent implements CoreMethodCallEventInterface {
-        public function __construct(CoreInterface $caller, string $methodName, array $arguments) {
+        public function __construct(CoreObjectInterface $caller, string $methodName, array $arguments) {
             parent::__construct($caller, $methodName, $arguments, true);            
         }
 

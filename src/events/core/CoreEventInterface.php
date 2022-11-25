@@ -6,11 +6,11 @@
     error_reporting(E_ALL);
     ini_set('display_errors', '1');
 
-    use pct\core\CoreInterface;
+    use pct\core\CoreObjectInterface;
     use pct\events\EventInterface;
 
     interface CoreEventInterface extends EventInterface {
-        public function GetCaller() : CoreInterface;
+        public function GetCaller() : CoreObjectInterface;
         public function GetReturnValue();
         public function SetReturnValue($returnValue);
     }

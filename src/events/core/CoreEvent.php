@@ -7,43 +7,27 @@
     ini_set('display_errors', '1');
 
     
-    use pct\core\CoreInterface;
+    use pct\core\CoreObjectInterface;
     use pct\events\Event;
 
 
     abstract class CoreEvent extends Event implements CoreEventInterface {
-        private ?CoreInterface $caller = null;
+        private ?CoreObjectInterface $caller = null;
         private $returnValue = null;
 
-        public function __construct(CoreInterface $caller, $returnValue = null) {
+        public function __construct(CoreObjectInterface $caller, $returnValue = null) {
             $this->caller      = $caller;
             $this->returnValue = $returnValue;
         }
 
-        /**
-         * Undocumented function
-         *
-         * @return CoreInterface
-         */
-        public function GetCaller() : CoreInterface {
+        public function GetCaller() : CoreObjectInterface {
             return $this->caller;
         }
 
-        /**
-         * Undocumented function
-         *
-         * @return mixed
-         */
         public function GetReturnValue() {
             return $this->returnValue;
         }
 
-        /**
-         * Undocumented function
-         *
-         * @param [type] $returnValue
-         * @return void
-         */
         public function SetReturnValue($returnValue) {
             $this->returnValue = $returnValue;
         }

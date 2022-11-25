@@ -49,7 +49,11 @@
         }
 
         public function GetErrors() : array {
-            return $this->errors;
+            $returnValue = $this->errors;
+
+            $this->errors = [];
+
+            return $returnValue;
         }
     }
     

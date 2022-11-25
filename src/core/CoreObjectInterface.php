@@ -14,8 +14,27 @@
     interface CoreObjectInterface extends CoreObjectArrayElementInterface {
         public function SetParent(?CoreObjectInterface $parent) : ?bool;
         public function GetParent() : ?CoreObjectInterface;
+
+        public function ComponentIndex($component) : ?int;
+        public function ComponentExists($component) : ?bool;
+        public function ComponentNames(string $isA) : array;
         public function AddComponent(ComponentInterface $component, string $name = "", $position = null) : ?CoreObjectInterface;
         public function RemoveComponent($component) : ?CoreObjectInterface;
+        public function SetComponent($offset, ComponentInterface $component) : ?CoreObjectInterface;
+        public function GetComponent($offset) : ?CoreObjectInterface;
+        public function GetComponents(string $isA) : array;
+
+
+/*        
+        public function ExtensionIndex($component) : ?int;
+        public function ExtensionExists($component) : ?bool;
+        public function ExtensionNames(string $isA) : array;
+        public function AddExtension(ComponentInterface $component, string $name = "", $position = null) : ?CoreObjectInterface;
+        public function RemoveExtension($component) : ?CoreObjectInterface;
+        public function SetExtension($offset, ComponentInterface $component) : ?CoreObjectInterface;
+        public function GetExtension($offset) : ?CoreObjectInterface;
+        public function GetExtensions(string $isA) : array;
+*/        
     }
 
 
