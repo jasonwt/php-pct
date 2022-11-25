@@ -24,17 +24,15 @@
         public function GetComponent($offset) : ?CoreObjectInterface;
         public function GetComponents(string $isA) : array;
 
-
-/*        
-        public function ExtensionIndex($component) : ?int;
-        public function ExtensionExists($component) : ?bool;
+        public function ExtensionIndex($extension) : ?int;
+        public function ExtensionExists($extension) : ?bool;
         public function ExtensionNames(string $isA) : array;
-        public function AddExtension(ComponentInterface $component, string $name = "", $position = null) : ?CoreObjectInterface;
-        public function RemoveExtension($component) : ?CoreObjectInterface;
-        public function SetExtension($offset, ComponentInterface $component) : ?CoreObjectInterface;
+        public function AddExtension(ExtensionInterface $extension, string $name = "", $position = null) : ?CoreObjectInterface;
+        public function RemoveExtension($extension) : ?CoreObjectInterface;
+        public function SetExtension($offset, ExtensionInterface $extension) : ?CoreObjectInterface;
         public function GetExtension($offset) : ?CoreObjectInterface;
         public function GetExtensions(string $isA) : array;
-*/        
+        
     }
 
 

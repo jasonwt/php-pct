@@ -52,14 +52,13 @@
             }
 
             if ($this->SendEvent(CoreMethodCallEvent::AUTO([&$parent]))) {
-
                 if (count($db) > 1) {
                     if ($db[1]["function"] == "AddComponent" || $db[1]["function"] == "RemoveComponent") {
                         if (!is_null($this->GetParent())) {
                             if ($this instanceof ComponentInterface)
                                 $returnValue = ($this->GetParent()->RemoveComponent($this) == $this);
-//                            else if ($this instanceof ExtensionInterface)
-//                                $returnValue = $this->GetParent()->RemoveExtension($this);
+                            else if ($this instanceof ExtensionInterface)
+                                $returnValue = $this->GetParent()->RemoveExtension($this);
         
                             if (is_null($returnValue))
                                 $this->errors = array_merge($this->errors, $this->components->GetErrors());
@@ -79,7 +78,6 @@
 
             return $this->SendEvent(CoreMethodReturnEvent::AUTO([&$parent], $returnValue));           
         }
-
 
         /**
          * Get the integer index of the specified component/key
@@ -238,6 +236,159 @@
 
 
 
+
+
+
+
+
+        /**
+         * Get the integer index of the specified extension/key
+         * null if not found
+         *
+         * @param null|int|string|ExtensionInterface $extension
+         * @return integer|null
+         */
+        public function ExtensionIndex($extension) : ?int {
+            $returnValue = null;
+
+            if ($this->SendEvent(CoreMethodCallEvent::AUTO([&$extension])))
+                if (is_null($returnValue = $this->extensions->Index($extension, 0)))
+                    $this->errors = array_merge($this->errors, $this->extensions->GetErrors());
+
+            return $this->SendEvent(CoreMethodReturnEvent::AUTO([&$extension], $returnValue));
+        }
+
+        /**
+         * Check if a extension/key exists
+         * null on error
+         *
+         * @param null|int|string|ExtensionInterface $extension
+         * @return integer|null
+         */
+        public function ExtensionExists($extension) : ?bool {
+            $returnValue = null;
+
+            if ($this->SendEvent(CoreMethodCallEvent::AUTO([&$extension])))
+                if (is_null($returnValue = $this->extensions->Exists($extension, 0)))
+                    $this->errors = array_merge($this->errors, $this->extensions->GetErrors());
+
+            return $this->SendEvent(CoreMethodReturnEvent::AUTO([&$extension], $returnValue));
+        }
+
+        /**
+         * Get the name of extensions that a derived from $isA
+         *
+         * @param string $isA
+         * @return array
+         */
+        public function ExtensionNames(string $isA) : array {
+            $returnValue = array();
+
+            if ($this->SendEvent(CoreMethodCallEvent::AUTO([&$isA])))
+                $returnValue = $this->extensions->Keys($isA);                
+
+            return $this->SendEvent(CoreMethodReturnEvent::AUTO([&$isA], $returnValue));
+        }
+        
+        /**
+         * Add A child extension
+         *
+         * @param ExtensionInterface $extension
+         * @param string $name
+         * @param null|int|string|CoreObjectInterface $position
+         * @return CoreObjectInterface|null
+         */
+        public function AddExtension(ExtensionInterface $extension, string $name = "", $position = null) : ?CoreObjectInterface {
+            $returnValue = null;
+
+            if ($this->SendEvent(CoreMethodCallEvent::AUTO([&$extension, &$name, &$position]))) {
+
+                if (!is_null($this->extensions->Insert($extension, $name, $position)))
+                    if ($extension->SetParent($this))
+                        $returnValue = $this;
+            
+                if (is_null($returnValue))
+                    $this->errors = array_merge($this->errors, $this->extensions->GetErrors());
+                    
+            }
+
+            return $this->SendEvent(CoreMethodReturnEvent::AUTO([&$extension], $returnValue));
+        }
+
+        /**
+         * Remove a child extension
+         *
+         * @param int|string|CoreObjectInterface $extension
+         * @return CoreObjectInterface|null
+         */
+        public function RemoveExtension($extension) : ?CoreObjectInterface {
+            $returnValue = null;
+
+            if ($this->SendEvent(CoreMethodCallEvent::AUTO([&$extension]))) {
+
+                if (!is_null($this->extensions->Remove($extension)))
+                    if (!is_null($extension->SetParent(null)))
+                        $returnValue = $this;
+
+                if (is_null($returnValue))
+                    $this->errors = array_merge($this->errors, $this->extensions->GetErrors());
+
+            }
+
+            return $this->SendEvent(CoreMethodReturnEvent::AUTO([&$extension], $returnValue));    
+        }
+
+        /**
+         * Add/Replace a extension
+         *
+         * @param int|string|ExtensionInterface $offset
+         * @param ExtensionInterface $extension
+         * @return CoreObjectInterface|null
+         */
+        public function SetExtension($offset, ExtensionInterface $extension) : ?CoreObjectInterface {
+            $returnValue = null;
+
+            if ($this->SendEvent(CoreMethodCallEvent::AUTO([&$offset, &$extension]))) {
+                if (!is_null($returnValue = $this->extensions->Set($offset, $extension)))
+                    $returnValue = ($extension->SetParent($this) ? $this : null);                    
+                else
+                    $this->errors = array_merge($this->errors, $this->extensions->GetErrors());
+            }
+
+            return $this->SendEvent(CoreMethodReturnEvent::AUTO([&$offset, &$extension], $returnValue));
+        }
+
+        /**
+         * Get a extension value
+         *
+         * @param int|string|ExtensionInterface $offset
+         * @return null|CoreObjectInterface
+         */
+        public function GetExtension($offset) : ?CoreObjectInterface {
+            $returnValue = null;
+
+            if ($this->SendEvent(CoreMethodCallEvent::AUTO([&$offset]))) {
+                if (is_null($returnValue = $this->extensions->Get($offset)))                    
+                    $this->errors = array_merge($this->errors, $this->extensions->GetErrors());
+            }
+
+            return $this->SendEvent(CoreMethodReturnEvent::AUTO([&$offset], $returnValue));
+        }
+
+        /**
+         * Get all extensions that are dervied by $isA
+         *
+         * @param string $isA
+         * @return array
+         */
+        public function GetExtensions(string $isA) : array {
+            $returnValue = array();
+
+            if ($this->SendEvent(CoreMethodCallEvent::AUTO([&$isA])))
+                $returnValue = $this->extensions->GetElements($isA);
+
+            return $this->SendEvent(CoreMethodReturnEvent::AUTO([&$isA], $returnValue));
+        }
 
 
 
