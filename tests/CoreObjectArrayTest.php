@@ -26,6 +26,7 @@
     $parent->AddComponent(($child1 = new Component()));
 
     $parent2->AddComponent($child1);
+    //$parent2->AddComponent($child1);
     //$parent->AddComponent("child1", ($child1 = new Component()));
     //$parent2->AddComponent("child1", $child1);
     //$child1->SetParent(null);

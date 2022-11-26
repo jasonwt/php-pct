@@ -12,15 +12,23 @@
 
     use pct\events\core\CoreEventInterface;
     use pct\events\core\method\CoreMethodEventInterface;
-    use pct\events\core\method\CoreMethodCallEventInterface;
-    use pct\events\core\method\CoreMethodReturnEventInterface;
     use pct\events\core\method\CoreMethodCallEvent;
     use pct\events\core\method\CoreMethodReturnEvent;
+
+    use pct\traits\core\CoreObjectComponentsTraits;
+    use pct\traits\core\CoreObjectExtensionsTraits;
+    use pct\core\CoreObjectInterface;
     
     
     class CoreObject extends CoreObjectArrayElement implements CoreObjectInterface {
-        public CoreObjectArray $components;
-        public CoreObjectArray $extensions;
+        private bool $enabled = true;
+
+        use CoreObjectComponentsTraits {
+            __construct as CoreObjectComponentTraitsContrustor;
+        }
+        use CoreObjectExtensionsTraits {
+            __construct as CoreObjectExtensionTraitsContrustor;
+        }
 
         private ?CoreObjectInterface $parent = null;
 
@@ -31,17 +39,11 @@
          * @param string|null $componentsBaseClass
          * @param string|null $extensionsBaseClass
          */
-        public function __construct(bool $autoOffset = false, string $componentsBaseClass = null, string $extensionsBaseClass = null) {
+        public function __construct(bool $autoOffset = false, string $componentsBaseClass = "", string $extensionsBaseClass = "") {
             parent::__construct();
 
-            if (($componentsBaseClass = trim(strval($componentsBaseClass))) == "")
-                $componentsBaseClass = "\\pct\\components\\ComponentInterface";
-
-            if (($componentsBaseClass = trim(strval($componentsBaseClass))) == "")
-                $componentsBaseClass = "\\pct\\components\\ExtensionInterface";
-
-            $this->components = new CoreObjectArray($componentsBaseClass, $autoOffset);
-            $this->extensions = new CoreObjectArray($extensionsBaseClass, $autoOffset);
+            $this->CoreObjectComponentTraitsContrustor($this, $autoOffset, $componentsBaseClass);            
+            $this->CoreObjectComponentTraitsContrustor($this, $autoOffset, $extensionsBaseClass);
         }
        
         /**
@@ -98,329 +100,81 @@
             return $this->SendEvent(CoreMethodReturnEvent::AUTO([&$parent], $returnValue));           
         }
 
-        /**
-         * Get the integer index of the specified component/key
-         * null if not found
-         *
-         * @param null|int|string|ComponentInterface $component
-         * @return integer|null
-         */
-        public function ComponentIndex($component) : ?int {
-            $returnValue = null;
+        public function Disabled() : bool {
+            $returnValue = false;
 
-            if ($this->SendEvent(CoreMethodCallEvent::AUTO([&$component])))
-                if (is_null($returnValue = $this->components->Index($component, 0)))
-                    $this->errors = array_merge($this->errors, $this->components->GetErrors());
-
-            return $this->SendEvent(CoreMethodReturnEvent::AUTO([&$component], $returnValue));
-        }
-
-        /**
-         * Check if a component/key exists
-         * null on error
-         *
-         * @param null|int|string|ComponentInterface $component
-         * @return integer|null
-         */
-        public function ComponentExists($component) : ?bool {
-            $returnValue = null;
-
-            if ($this->SendEvent(CoreMethodCallEvent::AUTO([&$component])))
-                if (is_null($returnValue = $this->components->Exists($component)))
-                    $this->errors = array_merge($this->errors, $this->components->GetErrors());
-
-            return $this->SendEvent(CoreMethodReturnEvent::AUTO([&$component], $returnValue));
-        }
-
-        /**
-         * Get the name of components that a derived from $isA
-         *
-         * @param string $isA
-         * @return array
-         */
-        public function ComponentNames(string $isA) : array {
-            $returnValue = array();
-
-            if ($this->SendEvent(CoreMethodCallEvent::AUTO([&$isA])))
-                $returnValue = $this->components->Keys($isA);                
-
-            return $this->SendEvent(CoreMethodReturnEvent::AUTO([&$isA], $returnValue));
-        }
-        
-        /**
-         * Add A child component
-         *
-         * @param ComponentInterface $component
-         * @param string $name
-         * @param null|int|string|CoreObjectInterface $position
-         * @return CoreObjectInterface|null
-         */
-        public function AddComponent(ComponentInterface $component, string $name = "", $position = null) : ?CoreObjectInterface {
-            $returnValue = null;
-
-            if ($this->SendEvent(CoreMethodCallEvent::AUTO([&$component, &$name, &$position]))) {
-
-                if (!is_null($this->components->Insert($component, $name, $position)))
-                    if ($component->SetParent($this))
-                        $returnValue = $this;
-            
-                if (is_null($returnValue))
-                    $this->errors = array_merge($this->errors, $this->components->GetErrors());
+            if ($this->SendEvent(CoreMethodCallEvent::AUTO([])) !== false) {
+                if ($this->enabled) {
+                    $returnValue = true;
+                    $this->enabled = false;                    
+                } else {
+                    $this->RegisterError(E_USER_WARNING, "Disable() failed.  Already disabled.");
+                }
             }
 
-            return $this->SendEvent(CoreMethodReturnEvent::AUTO([&$component], $returnValue));
+            return $this->SendEvent(CoreMethodReturnEvent::AUTO([], $returnValue));
         }
 
-        /**
-         * Remove a child component
-         *
-         * @param int|string|CoreObjectInterface $component
-         * @return CoreObjectInterface|null
-         */
-        public function RemoveComponent($component) : ?CoreObjectInterface {
-            $returnValue = null;
 
-            if ($this->SendEvent(CoreMethodCallEvent::AUTO([&$component]))) {
+        public function Enable() : bool {
+            $returnValue = false;
 
-                if (!is_null($this->components->Remove($component)))
-                    if (!is_null($component->SetParent(null)))
-                        $returnValue = $this;
-
-                if (is_null($returnValue))
-                    $this->errors = array_merge($this->errors, $this->components->GetErrors());
+            if ($this->SendEvent(CoreMethodCallEvent::AUTO([])) !== false) {
+                if (!$this->enabled) {
+                    $returnValue = true;
+                    $this->enabled = true;                    
+                } else {
+                    $this->RegisterError(E_USER_WARNING, "Enable() failed.  Already disabled.");
+                }
             }
 
-            return $this->SendEvent(CoreMethodReturnEvent::AUTO([&$component], $returnValue));    
+            return $this->SendEvent(CoreMethodReturnEvent::AUTO([], $returnValue));
         }
 
-        /**
-         * Add/Replace a component
-         *
-         * @param int|string|ComponentInterface $offset
-         * @param ComponentInterface $component
-         * @return CoreObjectInterface|null
-         */
-        public function SetComponent($offset, ComponentInterface $component) : ?CoreObjectInterface {
-            $returnValue = null;
+        public function IsEnabled() : bool {
+            $returnValue = false;
 
-            if ($this->SendEvent(CoreMethodCallEvent::AUTO([&$offset, &$component]))) {
-                if (!is_null($returnValue = $this->components->Set($offset, $component)))
-                    $returnValue = ($component->SetParent($this) ? $this : null);                    
-                else
-                    $this->errors = array_merge($this->errors, $this->components->GetErrors());
+            if ($this->SendEvent(CoreMethodCallEvent::AUTO([])) !== false) {
+                if (!$this->enabled) {
+                    $returnValue = true;
+                    $this->enabled = true;                    
+                } else {
+                    $this->RegisterError(E_USER_WARNING, "Enable() failed.  Already disabled.");
+                }
             }
 
-            return $this->SendEvent(CoreMethodReturnEvent::AUTO([&$offset, &$component], $returnValue));
+            return $this->SendEvent(CoreMethodReturnEvent::AUTO([], $returnValue));
         }
 
         /**
-         * Get a component value
+         * See if we or any of our extensions can call the specified methodName
          *
-         * @param int|string|ComponentInterface $offset
-         * @return null|CoreObjectInterface
+         * @param string $methodName
+         * @return boolean
          */
-        public function GetComponent($offset) : ?CoreObjectInterface {
-            $returnValue = null;
+/*        
+        public function CanCall(string $methodName): bool {
+            $returnValue = false;
 
-            if ($this->SendEvent(CoreMethodCallEvent::AUTO([&$offset]))) {
-                if (is_null($returnValue = $this->components->Get($offset)))                    
-                    $this->errors = array_merge($this->errors, $this->components->GetErrors());
+            if ($this->SendEvent(CoreMethodCallEvent::AUTO([&$methodName]))) {
+//                if (method_exists($this, $methodName))
+  //                  $returnValue = (new \ReflectionMethod($this, $methodName))->isPublic();
+    
+    //            foreach ($this->extensions as $extension)
+      //              $returnValue = $returnValue | $extension->CanExtensionCall($methodName,1);
             }
 
-            return $this->SendEvent(CoreMethodReturnEvent::AUTO([&$offset], $returnValue));
+            return $this->SendEvent(CoreMethodReturnEvent::AUTO([&$methodName], $returnValue));
         }
+*/
 
         /**
-         * Get all components that are dervied by $isA
+         * Send an event
          *
-         * @param string $isA
-         * @return array
+         * @param CoreMethodEventInterface $event
+         * @return mixed
          */
-        public function GetComponents(string $isA) : array {
-            $returnValue = array();
-
-            if ($this->SendEvent(CoreMethodCallEvent::AUTO([&$isA])))
-                $returnValue = $this->components->GetElements($isA);
-
-            return $this->SendEvent(CoreMethodReturnEvent::AUTO([&$isA], $returnValue));
-        }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        /**
-         * Get the integer index of the specified extension/key
-         * null if not found
-         *
-         * @param null|int|string|ExtensionInterface $extension
-         * @return integer|null
-         */
-        public function ExtensionIndex($extension) : ?int {
-            $returnValue = null;
-
-            if ($this->SendEvent(CoreMethodCallEvent::AUTO([&$extension])))
-                if (is_null($returnValue = $this->extensions->Index($extension, 0)))
-                    $this->errors = array_merge($this->errors, $this->extensions->GetErrors());
-
-            return $this->SendEvent(CoreMethodReturnEvent::AUTO([&$extension], $returnValue));
-        }
-
-        /**
-         * Check if a extension/key exists
-         * null on error
-         *
-         * @param null|int|string|ExtensionInterface $extension
-         * @return integer|null
-         */
-        public function ExtensionExists($extension) : ?bool {
-            $returnValue = null;
-
-            if ($this->SendEvent(CoreMethodCallEvent::AUTO([&$extension])))
-                if (is_null($returnValue = $this->extensions->Exists($extension)))
-                    $this->errors = array_merge($this->errors, $this->extensions->GetErrors());
-
-            return $this->SendEvent(CoreMethodReturnEvent::AUTO([&$extension], $returnValue));
-        }
-
-        /**
-         * Get the name of extensions that a derived from $isA
-         *
-         * @param string $isA
-         * @return array
-         */
-        public function ExtensionNames(string $isA) : array {
-            $returnValue = array();
-
-            if ($this->SendEvent(CoreMethodCallEvent::AUTO([&$isA])))
-                $returnValue = $this->extensions->Keys($isA);                
-
-            return $this->SendEvent(CoreMethodReturnEvent::AUTO([&$isA], $returnValue));
-        }
-        
-        /**
-         * Add A child extension
-         *
-         * @param ExtensionInterface $extension
-         * @param string $name
-         * @param null|int|string|CoreObjectInterface $position
-         * @return CoreObjectInterface|null
-         */
-        public function AddExtension(ExtensionInterface $extension, string $name = "", $position = null) : ?CoreObjectInterface {
-            $returnValue = null;
-
-            if ($this->SendEvent(CoreMethodCallEvent::AUTO([&$extension, &$name, &$position]))) {
-
-                if (!is_null($this->extensions->Insert($extension, $name, $position)))
-                    if ($extension->SetParent($this))
-                        $returnValue = $this;
-            
-                if (is_null($returnValue))
-                    $this->errors = array_merge($this->errors, $this->extensions->GetErrors());
-            }
-
-            return $this->SendEvent(CoreMethodReturnEvent::AUTO([&$extension], $returnValue));
-        }
-
-        /**
-         * Remove a child extension
-         *
-         * @param int|string|CoreObjectInterface $extension
-         * @return CoreObjectInterface|null
-         */
-        public function RemoveExtension($extension) : ?CoreObjectInterface {
-            $returnValue = null;
-
-            if ($this->SendEvent(CoreMethodCallEvent::AUTO([&$extension]))) {
-
-                if (!is_null($this->extensions->Remove($extension)))
-                    if (!is_null($extension->SetParent(null)))
-                        $returnValue = $this;
-
-                if (is_null($returnValue))
-                    $this->errors = array_merge($this->errors, $this->extensions->GetErrors());
-            }
-
-            return $this->SendEvent(CoreMethodReturnEvent::AUTO([&$extension], $returnValue));    
-        }
-
-        /**
-         * Add/Replace a extension
-         *
-         * @param int|string|ExtensionInterface $offset
-         * @param ExtensionInterface $extension
-         * @return CoreObjectInterface|null
-         */
-        public function SetExtension($offset, ExtensionInterface $extension) : ?CoreObjectInterface {
-            $returnValue = null;
-
-            if ($this->SendEvent(CoreMethodCallEvent::AUTO([&$offset, &$extension]))) {
-                if (!is_null($returnValue = $this->extensions->Set($offset, $extension)))
-                    $returnValue = ($extension->SetParent($this) ? $this : null);                    
-                else
-                    $this->errors = array_merge($this->errors, $this->extensions->GetErrors());
-            }
-
-            return $this->SendEvent(CoreMethodReturnEvent::AUTO([&$offset, &$extension], $returnValue));
-        }
-
-        /**
-         * Get a extension value
-         *
-         * @param int|string|ExtensionInterface $offset
-         * @return null|CoreObjectInterface
-         */
-        public function GetExtension($offset) : ?CoreObjectInterface {
-            $returnValue = null;
-
-            if ($this->SendEvent(CoreMethodCallEvent::AUTO([&$offset]))) {
-                if (is_null($returnValue = $this->extensions->Get($offset)))                    
-                    $this->errors = array_merge($this->errors, $this->extensions->GetErrors());
-            }
-
-            return $this->SendEvent(CoreMethodReturnEvent::AUTO([&$offset], $returnValue));
-        }
-
-        /**
-         * Get all extensions that are dervied by $isA
-         *
-         * @param string $isA
-         * @return array
-         */
-        public function GetExtensions(string $isA) : array {
-            $returnValue = array();
-
-            if ($this->SendEvent(CoreMethodCallEvent::AUTO([&$isA])))
-                $returnValue = $this->extensions->GetElements($isA);
-
-            return $this->SendEvent(CoreMethodReturnEvent::AUTO([&$isA], $returnValue));
-        }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        protected function SendEvent(CoreMethodEventInterface $event) {
+        protected function SendEvent(CoreMethodEventInterface $event) {           
             return $event->GetReturnValue();
         }
 
